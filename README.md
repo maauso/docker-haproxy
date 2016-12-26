@@ -133,7 +133,7 @@ backend apache.maauso.com
     "type": "DOCKER",
     "volumes": [],
     "docker": {
-      "image": "mauso/haproxy:1.7.1",
+      "image": "maauso/haproxy:1.7.1",
       "network": "HOST",
       "portMappings": null,
       "privileged": true,
