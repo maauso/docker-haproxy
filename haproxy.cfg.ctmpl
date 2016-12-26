@@ -1,0 +1,87 @@
+global
+  daemon
+  {{range $index, $element := service (env "CONSUL_SYSLOG_NAME") }}
+  {{if eq $index 0}}log {{.Address}}:{{.Port}} local0{{ end }}
+  {{else}}
+  log {{env "LOCAL_SYSLOG"}} local0
+  {{ end }}
+  spread-checks     {{env "HAPROXY_SPREAD_CHECKS"}}
+  max-spread-checks {{env "HAPROXY_MAX_SPREAD_CHECKS"}}
+  maxconn           {{env "HAPROXY_MAXCONN_GLOBAL"}}
+  tune.ssl.default-dh-param 2048
+  ssl-default-bind-ciphers ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA:ECDHE-ECDSA-DES-CBC3-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:DES-CBC3-SHA:!DSS
+  ssl-default-bind-options no-sslv3 no-tlsv10 no-tls-tickets
+  ssl-default-server-ciphers ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA:ECDHE-ECDSA-DES-CBC3-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:DES-CBC3-SHA:!DSS
+  ssl-default-server-options no-sslv3 no-tlsv10 no-tls-tickets
+  stats socket /var/run/haproxy/socket
+  server-state-file global
+  server-state-base /var/state/haproxy/
+  lua-load /haproxy/getpids.lua
+  lua-load /haproxy/getconfig.lua
+  lua-load /haproxy/getmaps.lua
+
+defaults
+  load-server-state-from-file global
+  log               global
+  option httplog
+  log-tag haproxy
+  retries                 {{env "HAPROXY_RETRIES"}}
+  backlog                 {{env "HAPROXY_BACKLOG"}}
+  maxconn                 {{env "HAPROXY_MAXCONN"}}
+  timeout connect         {{env "HAPROXY_TIMEOUT_CONNECT"}}
+  timeout client          {{env "HAPROXY_TIMEOUT_CLIENT"}}
+  timeout server          {{env "HAPROXY_TIMEOUT_SERVER"}}
+  timeout tunnel          3600s
+  timeout http-keep-alive {{env "HAPROXY_TIMEOUT_HTTP_KEEP_ALIVE"}}
+  timeout http-request    {{env "HAPROXY_TIMEOUT_HTTP_REQUEST"}}
+  timeout queue           {{env "HAPROXY_TIMEOUT_QUEUE"}}
+  timeout tarpit          60s
+  option            redispatch
+  option            http-server-close
+  option            dontlognull
+  option            contstats
+# allow connection multiplexing
+  http-reuse always
+# The "slowstart" parameter for a server accepts a value in milliseconds which indicates after how long a server which has just come back up will run at full speed.
+  default-server slowstart 10s
+
+listen stats
+  bind 0.0.0.0:7070
+  balance
+  mode http
+  stats enable
+  monitor-uri /_haproxy_health_check
+  acl getpid path /_haproxy_getpids
+  http-request use-service lua.getpids if getpid
+  acl getvhostmap path /_haproxy_getvhostmap
+  http-request use-service lua.getvhostmap if getvhostmap
+  acl getappmap path /_haproxy_getappmap
+  http-request use-service lua.getappmap if getappmap
+  acl getconfig path /_haproxy_getconfig
+  http-request use-service lua.getconfig if getconfig
+
+  acl signalmlbhup path /_mlb_signal/hup
+  http-request use-service lua.signalmlbhup if signalmlbhup
+  acl signalmlbusr1 path /_mlb_signal/usr1
+  http-request use-service lua.signalmlbusr1 if signalmlbusr1
+
+frontend app_http_in
+  bind *:8080
+  mode http
+  {{ range services }}{{ if .Tags | contains "haproxy.enable=true" }}acl host_{{ .Name }} hdr_dom(Host) -i {{ .Name }}.{{env "HAPROXY_DOM"}}
+  use_backend {{ .Name }} if host_{{ .Name }}
+  {{ end }}{{ end }}
+{{ range services }}{{ if .Tags | contains "haproxy.enable=true" }}backend {{ .Name }}{{ $PROTOCOL := "mode http" }}{{ $BALANCE := "balance roundrobin" }}{{ $MAXCONN := "" }}
+{{range .Tags}}{{if . | regexMatch "HAPROXY.PROTOCOL=*" }}{{ $PROTOCOL := print "mode " .|replaceAll "HAPROXY.PROTOCOL=" "" }}{{ end }}{{if . | regexMatch "HAPROXY.BALANCE=*" }}{{ $BALANCE := print "balance " .|replaceAll "HAPROXY.BALANCE=" "" }}{{ end }}{{if . | regexMatch "HAPROXY.MAXCONN=*" }}{{ $MAXCONN := print "maxconn " .|replaceAll "HAPROXY.MAXCONN=" "" }}{{ end }}{{end}}
+  {{ $PROTOCOL }}
+  {{ $BALANCE }}
+  {{ $MAXCONN }}
+  option tcp-check
+  option forwardfor
+# health check each 5 seconds, healthy after 2 successes, unhealthy after 3 fails
+  default-server inter 5s rise 2 fall 3
+  http-request set-header X-Forwarded-Port %[dst_port]
+  http-request add-header X-Forwarded-Proto https if { ssl_fc }
+  {{ range service .Name "passing" }}server {{ .Address | replaceAll "." "_" }}_{{ .Port}} {{ .Address }}:{{ .Port }} weight {{ key_or_default (print "test/" .Name "/" .Address "/" .Port)  "100" }} check
+  {{ end }}
+{{ end }}{{ end }}
