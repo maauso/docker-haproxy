@@ -1,4 +1,4 @@
-FROM maauso/docker-consul-template:0.16.0
+FROM maauso/docker-consul-template:latest
 MAINTAINER m.auso.p@gmail.com
 
 #HaProxy options
