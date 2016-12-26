@@ -1,4 +1,4 @@
-# HAProxy container - with Zero-Downtime Reloads and consul-template
+# HaProxy container - with Zero-Downtime Reloads and consul-template
 Docker container for HAProxy with consul-template, zero-downtime reloads and **consul-template** using (maauso/docker-consul-template)
 https://github.com/maauso/docker-consul-template
 ## Zero-Downtime Reloads
