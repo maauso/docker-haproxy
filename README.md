@@ -9,7 +9,7 @@ When HAProxy reloads using its 'graceful reload' feature, there's a tiny amount 
 sudo docker run --dns=10.2.9.100 -p8080:8080 -p7070:7070  -e CONSUL_SERVER="$CONSUL_SERVER" maauso/haproxy:1.7.1
 ```
 
-# HAPROXY Configure option
+# HAPROXY Configure options
 ## Global variables that we can use it
 
 ```bash
