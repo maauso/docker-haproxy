@@ -64,17 +64,17 @@ HAPROXY_TIMEOUT_QUEUE=30s
 Consul-Service-Name
 
 ```bash
-SERVICE_NAME=apache
+SERVICE_NAME=www
 ```
-It'll be Frontend / Backend name and DNS name before global domain, for exemple If we use `apache url will be apache.maauso.com
+It'll be Frontend / Backend name and DNS name before global domain, for exemple If we use `apache url will be www.maauso.com
 Frontend like
 
 ```bash
 frontend app_http_in
   bind *:8080
   mode http
-  acl host_apache.maauso.com hdr(host) -i apache.maauso.com
-  use_backend apache.maauso.com if host_apache.maauso.com
+  acl host_www.maauso.com hdr(host) -i www.maauso.com
+  use_backend www.maauso.com if host_wwww.maauso.com
 ```
 
 You should use Consul Tags to configure it, consul-template only add services that have the follow tag
@@ -101,7 +101,7 @@ HAPROXY.BACKEND.MAXCONN=10000
 In the end the backend will be
 
 ```bash
-backend apache.maauso.com
+backend www.maauso.com
   balance roundrobin
   mode http
   option forwardfor
