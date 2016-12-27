@@ -122,13 +122,6 @@ backend www.maauso.com
   "mem": 128,
   "disk": 0,
   "instances": 1,
-  "constraints": [
-    [
-      "dc",
-      "CLUSTER",
-      "aws9"
-    ]
-  ],
   "container": {
     "type": "DOCKER",
     "volumes": [],
