@@ -82,6 +82,6 @@ frontend app_http_in
   default-server inter 5s rise 2 fall 3
   http-request set-header X-Forwarded-Port %[dst_port]
   http-request add-header X-Forwarded-Proto https if { ssl_fc }
-  {{ range service .Name "passing" }}server {{ .Address | replaceAll "." "_" }}_{{ .Port}} {{ .Address }}:{{ .Port }} weight {{ key_or_default (print "test/" .Name "/" .Address "/" .Port)  "100" }} check
+  {{ range service .Name "passing" }}server {{ .Address | replaceAll "." "_" }}_{{ .Port}} {{ .Address }}:{{ .Port }} weight {{ key_or_default (print "app/" .Name "/" .Address "/" .Port)  "100" }} check
   {{ end }}
 {{ end }}{{ end }}
