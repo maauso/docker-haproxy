@@ -17,8 +17,7 @@ removeFirewallRules() {
 }
 
 reload() {
-  echo "Reloading haproxy"
-
+  echo "Reloading haproxy `date +'%D %T'`"
   (
     flock 200
 
