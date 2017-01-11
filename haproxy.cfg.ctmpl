@@ -68,10 +68,10 @@ listen stats
 frontend app_http_in
   bind *:8080
   mode http
-  {{ range services }}{{ if .Tags | contains "haproxy.enable=true" }}acl host_{{ .Name }} hdr_dom(Host) -i {{ .Name }}.{{env "HAPROXY_DOM"}}
+  {{ range services }}{{ if .Tags | contains "haproxy_enable" }}acl host_{{ .Name }} hdr_dom(Host) -i {{ .Name }}.{{env "HAPROXY_DOM"}}
   use_backend {{ .Name }} if host_{{ .Name }}
   {{ end }}{{ end }}
-{{ range services }}{{ if .Tags | contains "haproxy.enable=true" }}backend {{ .Name }}{{ $PROTOCOL := "mode http" }}{{ $BALANCE := "balance roundrobin" }}{{ $MAXCONN := "" }}
+{{ range services }}{{ if .Tags | contains "haproxy_enable" }}backend {{ .Name }}{{ $PROTOCOL := "mode http" }}{{ $BALANCE := "balance roundrobin" }}{{ $MAXCONN := "" }}
 {{range .Tags}}{{if . | regexMatch "HAPROXY.PROTOCOL=*" }}{{ $PROTOCOL := print "mode " .|replaceAll "HAPROXY.PROTOCOL=" "" }}{{ end }}{{if . | regexMatch "HAPROXY.BALANCE=*" }}{{ $BALANCE := print "balance " .|replaceAll "HAPROXY.BALANCE=" "" }}{{ end }}{{if . | regexMatch "HAPROXY.MAXCONN=*" }}{{ $MAXCONN := print "maxconn " .|replaceAll "HAPROXY.MAXCONN=" "" }}{{ end }}{{end}}
   {{ $PROTOCOL }}
   {{ $BALANCE }}
