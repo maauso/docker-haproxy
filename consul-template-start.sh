@@ -1,4 +1,4 @@
-/consul-template -log-level=warn -max-stale=10m -dedup -exec-splay=5s -wait=10s:11s -reload-signal="SIGHUP" -template "haproxy.cfg.ctmpl:haproxy.cfg" -exec "./run.sh" -consul ${CONSUL_SERVER}
+/consul-template -log-level=warn -max-stale=10m -exec-splay=5s -wait=10s:11s -reload-signal="SIGHUP" -template "haproxy.cfg.ctmpl:haproxy.cfg" -exec "./run.sh" -consul ${CONSUL_SERVER}
 
 
 #max-stale
