@@ -80,7 +80,7 @@ frontend app_http_in
 You should use Consul Tags to configure it, consul-template only add services that have the follow tag
 
 ```json
-"SERVICE_8080_TAGS": "haproxy.enable=true"
+"SERVICE_8080_TAGS": "haproxy_enable"
 ```
 
 Availables SERVICE_TAGS, you can change some backend options with :
