@@ -4,6 +4,8 @@ https://github.com/maauso/docker-consul-template
 ## Zero-Downtime Reloads
 When HAProxy reloads using its 'graceful reload' feature, there's a tiny amount of time where a number of packets might be dropped in the process. This is well documented elsewhere around the internet. This container uses the 'drop syn packets' technique to mitigate that. There are more sophisticated techniques available which lead to lower delays on a restart. If you'd like to implement one of those (for example, a variation of [the Yelp qdisc technique](http://engineeringblog.yelp.com/2015/04/true-zero-downtime-haproxy-reloads.html) that works for incoming traffic or the [unbounce IP tableflip technique](http://inside.unbounce.com/product-dev/haproxy-reloads/)) in this container
 
+![Alt text](images/HaProxy_Architecture.png?raw=true "Arch")
+
 **Run container**
 ```bash
 sudo docker run --dns=10.2.9.100 -p8080:8080 -p7070:7070  -e CONSUL_SERVER="$CONSUL_SERVER" maauso/haproxy:1.7.1
