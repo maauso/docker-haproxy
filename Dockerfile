@@ -19,7 +19,7 @@ ENV LOCAL_SYSLOG=127.0.0.1:514
 ## HAProxy CONFIGURE
 COPY haproxy.cfg.ctmpl /haproxy.cfg.ctmpl
 # runtime dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get clean && apt-get update; exit 0 && apt-get install -y --no-install-recommends \
         iptables \
         openssl \
         procps \
