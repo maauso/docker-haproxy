@@ -20,8 +20,6 @@ global
   lua-load /haproxy/getconfig.lua
   lua-load /haproxy/getmaps.lua
   lua-load /haproxy/signalmlb.lua
-  nbproc 4
-
 
 defaults
   log               global
