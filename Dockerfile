@@ -1,4 +1,4 @@
-FROM maauso/docker-consul-template:latest
+FROM maauso/docker-consul-template:0.16.0_jessie
 MAINTAINER m.auso.p@gmail.com
 
 #HaProxy options
@@ -33,7 +33,7 @@ COPY build-haproxy.sh \
     /haproxy/
 RUN chmod 755 /haproxy/build-haproxy.sh
 
-RUN apt-get update && apt-get install -y --no-install-recommends gcc libc6-dev libffi-dev libpcre3-dev libreadline-dev libssl1.0-dev zlib1g-dev make wget \
+RUN apt-get update && apt-get install -y --no-install-recommends gcc libc6-dev libffi-dev libpcre3-dev libreadline-dev libssl-dev zlib1g-dev make wget \
   && rm -rf /var/lib/apt/lists/* \
   && /haproxy/build-haproxy.sh \
   && apt-get purge -y --auto-remove $buildDeps
