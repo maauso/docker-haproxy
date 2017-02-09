@@ -5,6 +5,7 @@ global
   {{else}}
   log {{env "LOCAL_SYSLOG"}} local0
   {{ end }}
+  # 5% random delay offset in health checks
   spread-checks     {{env "HAPROXY_SPREAD_CHECKS"}}
   max-spread-checks {{env "HAPROXY_MAX_SPREAD_CHECKS"}}
   maxconn           {{env "HAPROXY_MAXCONN_GLOBAL"}}
@@ -79,8 +80,10 @@ frontend app_http_in
   option forwardfor
 # health check each 5 seconds, healthy after 2 successes, unhealthy after 3 fails
   default-server inter 5s rise 2 fall 3
+  # set X-Forwarded-For header with correct client IP
   http-request set-header X-Forwarded-Port %[dst_port]
   http-request add-header X-Forwarded-Proto https if { ssl_fc }
+   # Default server weight is 100, but we can set weight 0 to isolate nodes, but keep persistent connectio using Consul k/v
   {{ range service .Name "passing" }}server {{ .Address | replaceAll "." "_" }}_{{ .Port}} {{ .Address }}:{{ .Port }} weight {{ key_or_default (print "app/" .Name "/" .Address "/" .Port)  "100" }} check
   {{ end }}
 {{ end }}{{ end }}
