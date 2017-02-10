@@ -16,6 +16,13 @@ removeFirewallRules() {
   done
 }
 
+shutdown () {
+  echo "it get SIGTERM TRAP!"
+  iptables -w -I INPUT -p tcp --dport $PORT_7070 --syn -j DROP
+  sleep 2
+  wait ${PIDFILE} ; iptables -w -D INPUT -p tcp --dport $PORT_7070 -j DROP
+}
+
 reload() {
   echo "Reloading haproxy `date +'%D %T'`"
   (
@@ -51,4 +58,5 @@ mkdir -p /var/run/haproxy
 reload
 
 trap reload SIGHUP
+trap shutdown SIGTERM
 while true; do sleep 0.5; done
