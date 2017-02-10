@@ -64,7 +64,7 @@ reload
 trap_with_arg() {
     func="$1" ; shift
     for sig ; do
-        trap "$func $sig" "$sig"
+        echo "$func $sig"
     done
 }
 
@@ -72,6 +72,6 @@ func_trap() {
     echo Trapped: $1
 }
 
-trap_with_arg func_trap INT TERM HUP EXIT
+trap func_trap INT TERM HUP EXIT
 
 while true; do sleep 0.5; done
