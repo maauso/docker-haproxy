@@ -61,13 +61,6 @@ reload
 
 # trap reload SIGHUP 
 
-trap_with_arg() {
-    func="$1" ; shift
-    for sig ; do
-        echo "$func $sig"
-    done
-}
-
 func_trap() {
     echo Trapped: $1
 }
