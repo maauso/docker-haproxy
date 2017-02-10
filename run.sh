@@ -19,7 +19,7 @@ removeFirewallRules() {
 shutdown () {
   echo "it get SIGTERM TRAP!"
   iptables -w -I INPUT -p tcp --dport $PORT_7070 --syn -j DROP
-  sleep 2
+  sleep 10
   wait ${PIDFILE} ; iptables -w -D INPUT -p tcp --dport $PORT_7070 -j DROP
 }
 
