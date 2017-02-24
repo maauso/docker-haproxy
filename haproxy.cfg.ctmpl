@@ -5,7 +5,6 @@ global
   {{else}}
   log {{env "LOCAL_SYSLOG"}} local0
   {{ end }}
-  # 5% random delay offset in health checks
   spread-checks     {{env "HAPROXY_SPREAD_CHECKS"}}
   max-spread-checks {{env "HAPROXY_MAX_SPREAD_CHECKS"}}
   maxconn           {{env "HAPROXY_MAXCONN_GLOBAL"}}
@@ -41,10 +40,15 @@ defaults
   option            http-server-close
   option            dontlognull
   option            contstats
-# allow connection multiplexing
-  http-reuse always
+
+# allow connection multiplexing, NOTE: It should only be used when it's sure that the client can retry a failed request once in a while and where the benefit of aggressive connection reuse significantly outweights the downsides of rare connection failures.
+
+  http-reuse aggressive
+
 # The "slowstart" parameter for a server accepts a value in milliseconds which indicates after how long a server which has just come back up will run at full speed.
-  default-server slowstart 10s
+
+  default-server slowstart 20s
+
 
 listen stats
   bind 0.0.0.0:7070
@@ -60,6 +64,7 @@ listen stats
   http-request use-service lua.getappmap if getappmap
   acl getconfig path /_haproxy_getconfig
   http-request use-service lua.getconfig if getconfig
+
   acl signalmlbhup path /_mlb_signal/hup
   http-request use-service lua.signalmlbhup if signalmlbhup
   acl signalmlbusr1 path /_mlb_signal/usr1
@@ -76,14 +81,14 @@ frontend app_http_in
   {{ $PROTOCOL }}
   {{ $BALANCE }}
   {{ $MAXCONN }}
-  option tcp-check
+  option httpchk GET /{{ .Name }}/engineering/ping
+  http-check expect status 200
   option forwardfor
-# health check each 5 seconds, healthy after 2 successes, unhealthy after 3 fails
-  default-server inter 5s rise 2 fall 3
-  # set X-Forwarded-For header with correct client IP
+# health check each 10 seconds, healthy after 2 successes, unhealthy after 1 fails
+  default-server inter 10s rise 2 fall 1
   http-request set-header X-Forwarded-Port %[dst_port]
   http-request add-header X-Forwarded-Proto https if { ssl_fc }
-   # Default server weight is 100, but we can set weight 0 to isolate nodes, but keep persistent connectio using Consul k/v
   {{ range service .Name "passing" }}server {{ .Address | replaceAll "." "_" }}_{{ .Port}} {{ .Address }}:{{ .Port }} weight {{ key_or_default (print "app/" .Name "/" .Address "/" .Port)  "100" }} check
   {{ end }}
 {{ end }}{{ end }}
+
