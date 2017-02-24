@@ -16,41 +16,39 @@ removeFirewallRules() {
   done
 }
 
-shutdown () {
-  echo "it get SIGTERM TRAP!"
-  echo "iptables -w -I INPUT -p tcp --dport $PORT_7070 --syn -j DROP"
-  iptables -w -I INPUT -p tcp --dport $PORT_7070 -j REJECT
-  sleep 10
-  kill -TERM ${PIDFILE}
-  wait ${PIDFILE} ; iptables -w -D INPUT -p tcp --dport $PORT_7070 -j REJECT
-}
-
 reload() {
   echo "Reloading haproxy `date +'%D %T'`"
   (
     flock 200
+    #Check configuration file before to reload process
+    haproxy -f /haproxy.cfg -c
+    if [ $? -eq 0 ]
+    then
+      # Begin to drop SYN packets with firewall rules
+      addFirewallRules
 
-    # Begin to drop SYN packets with firewall rules
-    addFirewallRules
+      # Wait to settle
+      sleep 0.1
 
-    # Wait to settle
-    sleep 0.1
+      # Save the current HAProxy state
+      socat /var/run/haproxy/socket - <<< "show servers state" > /var/state/haproxy/global
 
-    # Save the current HAProxy state
-    socat /var/run/haproxy/socket - <<< "show servers state" > /var/state/haproxy/global
+      # Trigger reload
+      LATEST_HAPROXY_PID=$(cat $PIDFILE)
+      haproxy -p $PIDFILE -f /haproxy.cfg -D -sf $LATEST_HAPROXY_PID 200>&-
+      if [ -n "${HAPROXY_RELOAD_SIGTERM_DELAY-}" ]; then
+        sleep $HAPROXY_RELOAD_SIGTERM_DELAY && kill $LATEST_HAPROXY_PID 200>&- 2>/dev/null &
+      fi
 
-    # Trigger reload
-    LATEST_HAPROXY_PID=$(cat $PIDFILE)
-    haproxy -p $PIDFILE -f /haproxy.cfg -D -sf $LATEST_HAPROXY_PID 200>&-
-    if [ -n "${HAPROXY_RELOAD_SIGTERM_DELAY-}" ]; then
-      sleep $HAPROXY_RELOAD_SIGTERM_DELAY && kill $LATEST_HAPROXY_PID 200>&- 2>/dev/null &
+      # Remove the firewall rules
+      removeFirewallRules
+
+      # Need to wait 1s to prevent TCP SYN exponential backoff
+      sleep 1
+    else
+    echo "The configuration file is wrong, `date +'%D %T'`"
+    echo "$(cat /haproxy.cfg)"   
     fi
-
-    # Remove the firewall rules
-    removeFirewallRules
-
-    # Need to wait 1s to prevent TCP SYN exponential backoff
-    sleep 1
   ) 200>/var/run/haproxy/lock
 }
 
@@ -59,12 +57,5 @@ mkdir -p /var/run/haproxy
 
 reload
 
-# trap reload SIGHUP 
-
-func_trap() {
-    echo Trapped: $1
-}
-
-trap func_trap INT TERM HUP EXIT
-
+trap reload SIGHUP
 while true; do sleep 0.5; done
