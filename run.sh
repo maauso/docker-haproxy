@@ -16,6 +16,14 @@ removeFirewallRules() {
   done
 }
 
+kill () {
+  echo "Tenemos el killl!!!!"
+  iptables -w -I INPUT -p tcp --dport 7070 --syn -j REJECT 2>/dev/null;
+  sleep 5
+  kill ${PIDFILE}
+  wait ${JBOSS_PID} ; iptables -w -D INPUT -p tcp --dport 7070 --syn -j REJECT 2>/dev/null;
+}
+
 reload() {
   echo "Reloading haproxy `date +'%D %T'`"
   (
@@ -58,4 +66,5 @@ mkdir -p /var/run/haproxy
 reload
 
 trap reload SIGHUP
-while true; do sleep 0.5; done
+trap kill SIGTERM
+while true; do /bin/sleep 0.5; done
