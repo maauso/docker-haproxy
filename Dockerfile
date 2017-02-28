@@ -1,5 +1,10 @@
-FROM maauso/docker-consul-template:0.16.0_jessie
+FROM maauso/docker-consul-template:0.18.1
 MAINTAINER m.auso.p@gmail.com
+
+LABEL authors="Miguel Ángel Ausó m.auso.p@gmail.com"
+LABEL description="HaProxy images integrate with Consul using consul template"
+LABEL version="1.7.2"
+
 
 #HaProxy options
 ENV HAPROXY_MAXCONN_GLOBAL=50000
