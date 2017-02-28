@@ -18,12 +18,12 @@ removeFirewallRules() {
 
 kill () {
   echo "Tenemos el killl!!!!"
-  iptables -w -I INPUT -p tcp --dport 7070 -j REJECT 2>/dev/null;
+  iptables -w -I INPUT -p tcp --dport 4444 -j REJECT 2>/dev/null;
   echo "esperamos 5 segundos"
   sleep 5
   echo ""
   kill ${PIDFILE}
-  wait ${PIDFILE} ; iptables -w -D INPUT -p tcp --dport 7070 -j REJECT 2>/dev/null;
+  wait ${PIDFILE} ; iptables -w -D INPUT -p tcp --dport 4444 -j REJECT 2>/dev/null;
 }
 
 reload() {

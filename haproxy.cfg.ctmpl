@@ -51,7 +51,7 @@ defaults
 
 
 listen stats
-  bind 0.0.0.0:7070
+  bind 0.0.0.0:4444
   balance
   mode http
   stats enable
