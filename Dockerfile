@@ -51,5 +51,7 @@ RUN chmod 755 /run.sh \
     && mkdir -p /var/run/haproxy/
 
 #Script star with consul-template and haproxy
-COPY consul-template-start.sh /consul-template-start.sh
-CMD ["/bin/sh" , "/consul-template-start.sh"]
+#COPY consul-template-start.sh /consul-template-start.sh
+#CMD ["/bin/sh" , "/consul-template-start.sh"]
+COPY config.conf /config.conf
+CMD ["/consul-template" , "-config=/config.conf" ]
