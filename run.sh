@@ -18,7 +18,7 @@ removeFirewallRules() {
 
 kill () {
   echo "Tenemos el killl!!!!"
-  iptables -L INPUT -n | grep -v 4444
+  iptables -L INPUT -n | grep 4444
   if [ $? -eq 0 ]
   then
     echo "Muere HaProxy kill $PIDFILE"
