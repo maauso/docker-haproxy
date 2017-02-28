@@ -18,12 +18,15 @@ removeFirewallRules() {
 
 kill () {
   echo "Tenemos el killl!!!!"
-  iptables -w -I INPUT -p tcp --dport 4444 -j REJECT 2>/dev/null;
-  echo "esperamos 5 segundos"
-  sleep 5
-  echo ""
-  kill ${PIDFILE}
-  wait ${PIDFILE} ; iptables -w -D INPUT -p tcp --dport 4444 -j REJECT 2>/dev/null;
+  iptables -L INPUT -n | grep -v 4444
+  if [ $? -eq 0 ]
+  then
+    echo "Muere HaProxy kill $PIDFILE"
+    kill ${PIDFILE}
+    wait ${PIDFILE} ; iptables -w -D INPUT -p tcp --dport 4444 -j REJECT 2>/dev/null;
+  else
+    iptables -w -I INPUT -p tcp --dport 4444 -j REJECT 2>/dev/null;
+  fi
 }
 
 reload() {
@@ -32,8 +35,6 @@ reload() {
     flock 200
     #Check configuration file before to reload process
     haproxy -f /haproxy.cfg -c
-    if [ $? -eq 0 ]
-    then
       # Begin to drop SYN packets with firewall rules
       addFirewallRules
 
@@ -55,10 +56,6 @@ reload() {
 
       # Need to wait 1s to prevent TCP SYN exponential backoff
       sleep 1
-    else
-    echo "The configuration file is wrong, `date +'%D %T'`"
-    echo "$(cat /haproxy.cfg)"   
-    fi
   ) 200>/var/run/haproxy/lock
 }
 
