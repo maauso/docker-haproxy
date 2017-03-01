@@ -25,14 +25,15 @@ kill () {
       then
         echo "Muere HaProxy kill en el then $PID"
         kill ${PID}
-        wait ${PID} ; iptables -w -D INPUT -p tcp --dport 4444 -j REJECT 2>/dev/null;
-        sleep 1
+        # wait ${PID} ; iptables -w -D INPUT -p tcp --dport 4444 -j REJECT 2>/dev/null;
       else
-        iptables -w -I INPUT -p tcp --dport 4444 -j REJECT 2>/dev/null;
+        echo "Bloqueamos el puerto 4444 y esperamos 30 segundos para que falle el check de consul."
+        iptables -w -I INPUT -p tcp --dport 4444 -j REJECT 2>/dev/null && sleep 30 
         echo "Muere HaProxy kill dentro del else $PID"
+        echo "quitamos la regla y matamnos HaProxy"
+        iptables -w -D INPUT -p tcp --dport 4444 -j REJECT 2>/dev/null
         kill ${PID}
-        wait ${PID} ; iptables -w -D INPUT -p tcp --dport 4444 -j REJECT 2>/dev/null;
-        sleep 1
+        # wait ${PID} ; iptables -w -D INPUT -p tcp --dport 4444 -j REJECT 2>/dev/null;
       fi
   ) 200>/var/run/haproxy/lock
 }
