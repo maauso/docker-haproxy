@@ -1,7 +1,6 @@
 #!/bin/bash
 exec 2>&1
 export PIDFILE="/tmp/haproxy.pid"
-
 addFirewallRules() {
   IFS=',' read -ra ADDR <<< "$PORTS"
   for i in "${ADDR[@]}"; do
@@ -20,18 +19,19 @@ kill () {
   echo "Tenemos el killl!!!!"
   (
     flock 200
+      PID=`pidof haproxy`
       iptables -L INPUT -n | grep 4444
       if [ $? -eq 0 ]
       then
-        echo "Muere HaProxy kill en el then $PIDFILE"
-        kill ${PIDFILE}
-        wait ${PIDFILE} ; iptables -w -D INPUT -p tcp --dport 4444 -j REJECT 2>/dev/null;
+        echo "Muere HaProxy kill en el then $PID"
+        kill ${PID}
+        wait ${PID} ; iptables -w -D INPUT -p tcp --dport 4444 -j REJECT 2>/dev/null;
         sleep 1
       else
         iptables -w -I INPUT -p tcp --dport 4444 -j REJECT 2>/dev/null;
-        echo "Muere HaProxy kill dentro del else $PIDFILE"
-        kill ${PIDFILE}
-        wait ${PIDFILE} ; iptables -w -D INPUT -p tcp --dport 4444 -j REJECT 2>/dev/null;
+        echo "Muere HaProxy kill dentro del else $PID"
+        kill ${PID}
+        wait ${PID} ; iptables -w -D INPUT -p tcp --dport 4444 -j REJECT 2>/dev/null;
         sleep 1
       fi
   ) 200>/var/run/haproxy/lock
