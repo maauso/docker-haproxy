@@ -16,7 +16,7 @@ removeFirewallRules() {
 }
 
 kill () {
-  echo "killing haproxy"
+  echo "killing HaProxy `date +'%D %T'`"
   (
     flock 200
       PID=`pidof haproxy`
