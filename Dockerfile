@@ -1,5 +1,4 @@
 FROM maauso/docker-consul-template:0.18.1
-MAINTAINER m.auso.p@gmail.com
 
 LABEL authors="Miguel Ángel Ausó m.auso.p@gmail.com"
 LABEL description="HaProxy images integrate with Consul using consul template"
