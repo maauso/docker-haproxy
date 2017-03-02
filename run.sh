@@ -16,19 +16,18 @@ removeFirewallRules() {
 }
 
 kill () {
-  echo "Tenemos el killl!!!!"
+  echo "killing haproxy"
   (
     flock 200
       PID=`pidof haproxy`
-        echo "Bloqueamos el puerto 4444 y esperamos 30 segundos para que falle el check de consul."
+        echo "We block health check port and wait 30 seconds for the consul health checks fails"
         iptables -w -I INPUT -p tcp --dport 4444 -j REJECT 2>/dev/null && sleep 30 
-        echo "Muere HaProxy kill dentro del else $PID"
-        echo "quitamos la regla y matamnos HaProxy"
+        echo "We remove the iptables rule and we will send SIGTERM to $PID "
         iptables -w -D INPUT -p tcp --dport 4444 -j REJECT 2>/dev/null
-        kill ${PID}
-        # wait ${PID} ; iptables -w -D INPUT -p tcp --dport 4444 -j REJECT 2>/dev/null;
+        kill -15 ${PID}
   ) 200>/var/run/haproxy/lock
 }
+
 reload() {
   echo "Reloading haproxy `date +'%D %T'`"
   (
