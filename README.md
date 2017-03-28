@@ -15,6 +15,10 @@ When HAProxy reloads using its 'graceful reload' feature, there's a tiny amount 
 If you are using DNS balancer with consul in front HaProxy, now we can upgrade to docker without loss connections, I added kill () funtion.
 For more information, see run.sh <https://github.com/maauso/docker-haproxy/blob/master/run.sh>
 
+## Zombies reaping
+
+When running within isolated containers, you may have to care about reaping orphan child processes. Haproxy typicaly produce orphan processes because of it's two steps reload machanism. I added tini for this purpose.
+For more information, see <https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/>
 
 ## Run container
 

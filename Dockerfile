@@ -49,8 +49,18 @@ RUN chmod 755 /run.sh \
     && mkdir -p /var/state/haproxy/ \
     && mkdir -p /var/run/haproxy/
 
-#Script star with consul-template and haproxy
-#COPY consul-template-start.sh /consul-template-start.sh
-#CMD ["/bin/sh" , "/consul-template-start.sh"]
-COPY config.conf /config.conf
-CMD ["/consul-template" , "-config=/config.conf" ]
+# All Tini does is spawn a single child (Tini is meant to be run in a container), and wait for it to exit all the while reaping zombies and performing signal forwarding.
+RUN apt-get update && apt-get install -y --no-install-recommends gnupg2 wget
+RUN wget --output-document=tini https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini
+RUN wget --output-document=tini.asc https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini.asc
+RUN gpg --keyserver ha.pool.sks-keyservers.net --recv-keys 595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 \
+ && gpg --verify /tini.asc \
+ && rm -rf /tini.asc \
+ && mv tini /usr/bin/tini \
+ && chmod +x /usr/bin/tini \
+ && tini -- true \
+ && apt-get purge -y --auto-remove gnupg2 wget
+
+ENTRYPOINT [ "tini", "-g", "--", "/consul-template" ]
+CMD [ "-config=/config.conf" ]
+
