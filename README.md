@@ -1,77 +1,113 @@
 # HaProxy container - with Zero-Downtime Reloads and consul-template
-Docker container for HAProxy with consul-template, zero-downtime reloads and **consul-template** using (maauso/docker-consul-template)
-https://github.com/maauso/docker-consul-template
+
+Docker container for HAProxy with consul-template, zero-downtime reloads and **consul-template** using [maauso/docker-consul-template](
+https://github.com/maauso/docker-consul-template)
+
 ## Zero-Downtime Reloads
+
 When HAProxy reloads using its 'graceful reload' feature, there's a tiny amount of time where a number of packets might be dropped in the process. This is well documented elsewhere around the internet. This container uses the 'drop syn packets' technique to mitigate that. There are more sophisticated techniques available which lead to lower delays on a restart. If you'd like to implement one of those (for example, a variation of [the Yelp qdisc technique](http://engineeringblog.yelp.com/2015/04/true-zero-downtime-haproxy-reloads.html) that works for incoming traffic or the [unbounce IP tableflip technique](http://inside.unbounce.com/product-dev/haproxy-reloads/)) in this container
 
 ![Alt text](images/HaProxy_Architecture.png?raw=true "Arch")
 
-**Run container**
+## Run container
+
 ```bash
-sudo docker run --dns=10.2.9.100 -p8080:8080 -p7070:7070  -e CONSUL_SERVER="$CONSUL_SERVER" maauso/haproxy:1.7.1
+
+sudo docker run --dns=8.8.8.8 -p8080:8080 -p4444:4444  -e CONSUL_SERVER="$CONSUL_SERVER" maauso/haproxy:1.7.1
 ```
 
-# HAPROXY Configure options
-## Global variables that we can use it
+## HAPROXY Configure options
+
+### Global variables that we can use it
 
 ```bash
+
 HAPROXY_MAXCONN_GLOBAL=50000
 ```
+
 ```bash
+
 HAPROXY_SPREAD_CHECKS=5
 ```
+
 ```bash
+
 HAPROXY_MAX_SPREAD_CHECKS=15000
 ```
+
 ```bash
+
 HAPROXY_SPREAD-CHECKS=5
 ```
+
 ***This variable doesn't have default value***
 
 ```bash
+
 HAPROXY_DOM=maauso.com
 ```
 
-## Default variables that we can use it
+### Default variables that we can use it
+
 ```bash
+
 HAPROXY_RETRIES=3
 ```
+
 ```bash
+
 HAPROXY_BACKLOG=10000
 ```
+
 ```bash
+
 HAPROXY_MAXCONN=10000
 ```
+
 ```bash
+
 HAPROXY_TIMEOUT_CONNECT=3s
 ```
+
 ```bash
+
 HAPROXY_TIMEOUT_CLIENT=30s
 ```
+
 ```bash
+
 HAPROXY_TIMEOUT_SERVER=30s
 ```
+
 ```bash
+
 HAPROXY_TIMEOUT_HTTP_KEEP_ALIVE=1s
 ```
+
 ```bash
+
 HAPROXY_TIMEOUT_HTTP_REQUEST=15s
 ```
+
 ```bash
+
 HAPROXY_TIMEOUT_QUEUE=30s
 ```
 
-## How to configure your application to work with HaProxy?
+### How to configure your application to work with HaProxy
 
 Consul-Service-Name
 
 ```bash
+
 SERVICE_NAME=www
 ```
+
 It'll be Frontend / Backend name and DNS name before global domain, for exemple If we use `apache url will be www.maauso.com
 Frontend like
 
 ```bash
+
 frontend app_http_in
   bind *:8080
   mode http
@@ -82,21 +118,29 @@ frontend app_http_in
 You should use Consul Tags to configure it, consul-template only add services that have the follow tag
 
 ```json
+
 "SERVICE_8080_TAGS": "haproxy_enable"
 ```
 
 Availables SERVICE_TAGS, you can change some backend options with :
 
 ```bash
+
 HAPROXY.ENABLE=true
 ```
+
 ```bash
+
 HAPROXY.PROTOCOL=http
 ```
+
 ```bash
+
 HAPROXY.BACKEND.BALANCE=roundrobin
 ```
+
 ```bash
+
 HAPROXY.BACKEND.MAXCONN=10000
 ```
 
@@ -113,8 +157,7 @@ backend www.maauso.com
   http-request add-header X-Forwarded-Proto https if { ssl_fc }
 ```
 
-
-## How to run HaProxy in Marathon
+### How to run HaProxy in Marathon
 
 ```json
 {
@@ -135,7 +178,7 @@ backend www.maauso.com
       "parameters": [
         {
           "key": "publish",
-          "value": "7070:7070"
+          "value": "4444:4444"
         }
       ],
       "forcePullImage": true
@@ -144,7 +187,7 @@ backend www.maauso.com
   "env": {
     "SERVICE_8080_NAME": "lb-app",
     "CONSUL_SERVER": "127.0.0.1:8500",
-    "SERVICE_7070_NAME": "lb-app"
+    "SERVICE_4444_NAME": "lb-app"
   },
   "healthChecks": [
     {
@@ -166,7 +209,7 @@ backend www.maauso.com
       "labels": {}
     },
     {
-      "port": 7070,
+      "port": 4444,
       "protocol": "tcp",
       "labels": {}
     }

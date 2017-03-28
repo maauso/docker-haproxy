@@ -1,5 +1,9 @@
-FROM maauso/docker-consul-template:0.16.0_jessie
-MAINTAINER m.auso.p@gmail.com
+FROM maauso/docker-consul-template:0.18.1
+
+LABEL authors="Miguel Ángel Ausó m.auso.p@gmail.com"
+LABEL description="HaProxy images integrate with Consul using consul template"
+LABEL version="1.7.2"
+
 
 #HaProxy options
 ENV HAPROXY_MAXCONN_GLOBAL=50000
@@ -46,5 +50,7 @@ RUN chmod 755 /run.sh \
     && mkdir -p /var/run/haproxy/
 
 #Script star with consul-template and haproxy
-COPY consul-template-start.sh /consul-template-start.sh
-CMD ["/bin/sh" , "/consul-template-start.sh"]
+#COPY consul-template-start.sh /consul-template-start.sh
+#CMD ["/bin/sh" , "/consul-template-start.sh"]
+COPY config.conf /config.conf
+CMD ["/consul-template" , "-config=/config.conf" ]
