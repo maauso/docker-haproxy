@@ -2,7 +2,7 @@ FROM maauso/docker-consul-template:0.18.1
 
 LABEL authors="Miguel Ángel Ausó m.auso.p@gmail.com"
 LABEL description="HaProxy images integrate with Consul using consul template"
-LABEL version="1.7.2"
+LABEL version="1.7.3"
 
 
 #HaProxy options
