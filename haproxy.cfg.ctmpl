@@ -42,13 +42,13 @@ defaults
   option            contstats
 
 # allow connection multiplexing, NOTE: It should only be used when it's sure that the client can retry a failed request once in a while and where the benefit of aggressive connection reuse significantly outweights the downsides of rare connection failures.
-
   http-reuse aggressive
 
 # The "slowstart" parameter for a server accepts a value in milliseconds which indicates after how long a server which has just come back up will run at full speed.
-
   default-server slowstart 20s
 
+# When this option is set, a server which returns an HTTP code 404 will be excluded from further load-balancing, but will still receive persistent connections
+# http-check disable-on-404
 
 listen stats
   bind 0.0.0.0:4444
