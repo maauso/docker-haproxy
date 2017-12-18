@@ -81,8 +81,9 @@ frontend app_http_in
   {{ $PROTOCOL }}
   {{ $BALANCE }}
   {{ $MAXCONN }}
-  option httpchk GET /{{ .Name }}/engineering/ping
-  http-check expect status 200
+  # option httpchk GET /
+  # http-check expect status 200
+  option tcp-check
   option forwardfor
 # health check each 10 seconds, healthy after 2 successes, unhealthy after 1 fails
   default-server inter 10s rise 2 fall 1
