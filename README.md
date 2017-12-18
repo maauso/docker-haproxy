@@ -9,7 +9,6 @@ When HAProxy reloads using its 'graceful reload' feature, there's a tiny amount 
 
 ![Alt text](images/HaProxy_Architecture.png?raw=true "Arch")
 
-
 ## DNS balancing
 
 If you are using DNS balancer with consul in front HaProxy, now we can upgrade to docker without loss connections, I added kill () funtion.
